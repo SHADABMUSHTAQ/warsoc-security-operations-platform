@@ -1,0 +1,31 @@
+# Dependencies and generated files
+node_modules/
+dist/
+.vite/
+.vercel/
+coverage/
+playwright-report/
+test-results/
+
+# Environment files: keep only the safe example below.
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.production
+!.env.production.example
+
+# Local editor and OS files
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Generated and private project material
+outputs/
+*.docx
+*.pdf
+
+# Local presentation build and portal-upload files
+.deck-build/
+deliverables/
