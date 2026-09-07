@@ -7,6 +7,7 @@ triage and investigate security telemetry through a single dashboard.
 ## What is included
 
 - FastAPI backend and domain modules
+- Agent source, build/support scripts, test code and non-secret deployment templates
 - MongoDB and Redis integration code
 - API routes, schemas, detection/triage workflows and monitoring utilities
 - A safe environment template plus a minimal local Docker setup
@@ -16,8 +17,8 @@ triage and investigate security telemetry through a single dashboard.
 This is a public hackathon submission. It does **not** include secrets,
 credentials, `.env` files, private certificates/keys, database backups, logs,
 test reports, screenshots, deployment runbooks, cloud infrastructure settings
-or compiled agent installers. Configure your own services and secrets before
-running it.
+or compiled agent installers. Production runbooks and active cloud settings
+are also excluded. Configure your own services and secrets before running it.
 
 ## Run locally
 

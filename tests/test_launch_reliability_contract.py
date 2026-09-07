@@ -1,0 +1,217 @@
+from __future__ import annotations
+
+import os
+import uuid
+
+import pytest
+from pymongo.errors import DuplicateKeyError
+
+from app.db.init_db import init_compliance_db
+from app.main import app as fastapi_app
+from app.database import init_db as init_core_db
+from app.routes.auth import get_password_hash
+
+
+@pytest.mark.asyncio
+async def test_health_checks_mongodb_and_redis(async_client):
+    response = await async_client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "healthy",
+        "dependencies": {"mongodb": "healthy", "redis": "healthy"},
+    }
+
+
+@pytest.mark.asyncio
+async def test_health_reports_degraded_when_redis_is_unavailable(async_client):
+    redis_client = fastapi_app.state.redis
+    fastapi_app.state.redis = None
+    try:
+        response = await async_client.get("/health")
+    finally:
+        fastapi_app.state.redis = redis_client
+
+    assert response.status_code == 503
+    assert response.json()["status"] == "degraded"
+    assert response.json()["dependencies"]["redis"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_provisioning_rolls_back_tenant_and_genesis_when_user_insert_fails(
+    async_client,
+    db,
+    monkeypatch,
+):
+    run_id = uuid.uuid4().hex[:10]
+    email = f"rollback-{run_id}@example.com"
+    collection_type = type(db["users"])
+    original_insert_one = collection_type.insert_one
+    captured: dict[str, str] = {}
+
+    async def fail_target_user_insert(collection, document, *args, **kwargs):
+        if collection.name == "tenants" and document.get("company_name") == f"Rollback Contract {run_id}":
+            captured["tenant_id"] = document["tenant_id"]
+        if collection.name == "users" and document.get("email") == email:
+            raise RuntimeError("simulated user insert failure")
+        return await original_insert_one(collection, document, *args, **kwargs)
+
+    monkeypatch.setattr(collection_type, "insert_one", fail_target_user_insert)
+
+    response = await async_client.post(
+        "/api/v1/admin/provision",
+        headers={"X-Admin-Key": os.environ["SUPER_ADMIN_API_KEY"]},
+        json={
+            "company_name": f"Rollback Contract {run_id}",
+            "plan_type": "Customized",
+            "compliance_packs": ["fbr_pos", "peca_forensic"],
+            "max_agents": 50,
+            "admin_email": email,
+            "admin_name": "Rollback Admin",
+            "admin_password": f"Rollback-{run_id}-2026!",
+        },
+    )
+
+    assert response.status_code == 500
+    assert response.json()["detail"] == "The service is temporarily unavailable."
+    assert await db["users"].count_documents({"email": email}) == 0
+    tenant = await db["tenants"].find_one({"company_name": f"Rollback Contract {run_id}"})
+    assert tenant is None
+    assert captured.get("tenant_id")
+    assert await db["daily_forensic_ledgers"].count_documents(
+        {"worker_id": "admin_provisioning", "tenant_id": captured["tenant_id"]}
+    ) == 0
+
+
+@pytest.mark.asyncio
+async def test_siem_vault_has_write_and_dashboard_indexes(db):
+    await init_compliance_db(db)
+    indexes = await db["siem_cold_vault"].index_information()
+    index_keys = {tuple(details.get("key", [])) for details in indexes.values()}
+
+    assert (("tenant_id", 1), ("event_uid", 1)) in index_keys
+    assert (("tenant_id", 1), ("timestamp", -1)) in index_keys
+    assert "idx_siem_vault_tenant_event_uid" in indexes
+    assert "idx_siem_vault_tenant_timestamp" in indexes
+
+    for collection_name in ("logs", "peca_forensic_logs", "fbr_pos_logs"):
+        collection_indexes = await db[collection_name].index_information()
+        collection_keys = {
+            tuple(details.get("key", []))
+            for details in collection_indexes.values()
+        }
+        assert (("tenant_id", 1), ("timestamp", -1)) in collection_keys
+
+
+@pytest.mark.asyncio
+async def test_compliance_schema_initialization_fails_closed(db, monkeypatch):
+    async def fail_index_inspection(*_args, **_kwargs):
+        raise RuntimeError("simulated schema failure")
+
+    monkeypatch.setattr(
+        "app.db.init_db._drop_ttl_indexes",
+        fail_index_inspection,
+    )
+
+    with pytest.raises(RuntimeError, match="simulated schema failure"):
+        await init_compliance_db(db)
+
+
+@pytest.mark.asyncio
+async def test_core_startup_guarantees_siem_vault_indexes_before_compliance_backfills(db):
+    await db["siem_cold_vault"].drop_indexes()
+    await init_core_db()
+
+    indexes = await db["siem_cold_vault"].index_information()
+    assert indexes["idx_siem_vault_tenant_event_uid"]["key"] == [
+        ("tenant_id", 1),
+        ("event_uid", 1),
+    ]
+    assert indexes["idx_siem_vault_tenant_timestamp"]["key"] == [
+        ("tenant_id", 1),
+        ("timestamp", -1),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_alert_uid_index_deduplicates_identified_alerts_without_blocking_legacy_rows(db):
+    await init_compliance_db(db)
+    indexes = await db["security_alerts"].index_information()
+    alert_index = indexes["idx_alerts_tenant_alert_uid"]
+
+    assert alert_index["unique"] is True
+    assert alert_index["partialFilterExpression"] == {"alert_uid": {"$type": "string"}}
+
+    await db["security_alerts"].insert_many(
+        [
+            {"tenant_id": "TENANT-LEGACY", "message": "legacy one"},
+            {"tenant_id": "TENANT-LEGACY", "message": "legacy two"},
+        ]
+    )
+    assert await db["security_alerts"].count_documents({"tenant_id": "TENANT-LEGACY"}) == 2
+
+
+@pytest.mark.asyncio
+async def test_user_login_identities_are_globally_unique_case_insensitive(db):
+    await init_compliance_db(db)
+    indexes = await db["users"].index_information()
+
+    assert indexes["uq_users_email_ci"]["unique"] is True
+    assert indexes["uq_users_username_ci"]["unique"] is True
+
+    await db["users"].insert_one(
+        {
+            "tenant_id": "TENANT-A",
+            "email": "Admin@Example.com",
+            "username": "TenantAdmin",
+        }
+    )
+    with pytest.raises(DuplicateKeyError):
+        await db["users"].insert_one(
+            {
+                "tenant_id": "TENANT-B",
+                "email": "admin@example.com",
+                "username": "different-user",
+            }
+        )
+    with pytest.raises(DuplicateKeyError):
+        await db["users"].insert_one(
+            {
+                "tenant_id": "TENANT-B",
+                "email": "different@example.com",
+                "username": "tenantadmin",
+            }
+        )
+
+
+@pytest.mark.asyncio
+async def test_login_normalizes_email_case(async_client, db):
+    await db["tenants"].insert_one(
+        {
+            "tenant_id": "TENANT-LOGIN-CASE",
+            "status": "active",
+            "active": True,
+            "has_active_plan": True,
+        }
+    )
+    await db["users"].insert_one(
+        {
+            "tenant_id": "TENANT-LOGIN-CASE",
+            "email": "case@example.com",
+            "username": "case-user",
+            "hashed_password": get_password_hash("CaseLogin-2026!Secure"),
+            "role": "admin",
+            "status": "active",
+            "has_active_plan": True,
+        }
+    )
+
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        json={
+            "username": "  CASE@EXAMPLE.COM ",
+            "password": "CaseLogin-2026!Secure",
+        },
+    )
+
+    assert response.status_code == 200

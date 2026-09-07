@@ -15,6 +15,9 @@ __pycache__/
 coverage.xml
 htmlcov/
 *.log
+*.out
+*.bak
+*.xml
 
 # Local databases, uploads and generated exports
 data/
@@ -29,3 +32,11 @@ backups/
 Thumbs.db
 .vscode/
 .idea/
+
+# Generated diagnostics and presentation artifacts
+*_screenshot.png
+*_output.txt
+api_tail.txt
+docker_logs.txt
+proof.txt
+temp_agent_enroll.json
