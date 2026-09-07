@@ -1,1 +1,0 @@
-"""WarSOC endpoint runtime package."""

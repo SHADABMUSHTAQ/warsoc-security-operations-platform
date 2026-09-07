@@ -6,7 +6,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
-COPY syslog_receiver.py ./syslog_receiver.py
+COPY scripts ./scripts
 
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser

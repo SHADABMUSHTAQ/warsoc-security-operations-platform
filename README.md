@@ -7,34 +7,48 @@ triage and investigate security telemetry through a single dashboard.
 ## What is included
 
 - FastAPI backend and domain modules
-- Agent source, build/support scripts, test code and non-secret deployment templates
 - MongoDB and Redis integration code
 - API routes, schemas, detection/triage workflows and monitoring utilities
-- A safe environment template plus a minimal local Docker setup
+- A safe environment template, local Docker setup and demo-user bootstrap
 
 ## What is deliberately excluded
 
 This is a public hackathon submission. It does **not** include secrets,
 credentials, `.env` files, private certificates/keys, database backups, logs,
-test reports, screenshots, deployment runbooks, cloud infrastructure settings
-or compiled agent installers. Production runbooks and active cloud settings
-are also excluded. Configure your own services and secrets before running it.
+test reports, screenshots, deployment/cloud files or compiled agent installers.
+Configure your own services and secrets before running it.
 
 ## Run locally
 
-1. Create a virtual environment and install dependencies:
+1. Copy `.env.example` to `.env`, then set a unique `JWT_SECRET_KEY` of at
+   least 32 characters. Never commit this file.
 
    ```bash
-   python -m venv .venv
-   .venv\\Scripts\\activate
-   pip install -r requirements.txt
+   copy .env.example .env
    ```
 
-2. Copy `.env.example` to `.env`, then set a unique `JWT_SECRET_KEY` of at
-   least 32 characters. Start MongoDB and Redis locally, or use the example
-   Compose file.
+2. Start the API plus local MongoDB and Redis:
 
-3. Start the API:
+   ```bash
+   docker compose -f docker-compose.example.yml up --build -d
+   ```
+
+3. To demonstrate the frontend login safely, set `DEMO_USERNAME`,
+   `DEMO_EMAIL` and a new `DEMO_PASSWORD` in your local `.env`, then run:
+
+   ```bash
+   docker compose -f docker-compose.example.yml --profile tools run --rm seed-demo
+   ```
+
+   This creates only a local demo admin record. The script refuses to run in
+   production mode and never embeds a password in the repository.
+
+4. Run the frontend with `VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1`,
+   open its `/login` page and sign in using your local demo values. Dashboard
+   requests use the same `/api/v1` routes and HttpOnly-cookie authentication.
+
+For a non-Docker setup, install `requirements.txt`, start MongoDB and Redis,
+then run:
 
    ```bash
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
