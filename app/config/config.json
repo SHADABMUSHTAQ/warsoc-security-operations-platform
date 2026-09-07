@@ -1,0 +1,95 @@
+{
+    "mongodb": {
+        "db_name": "WarSOC_DB",
+        "uri": "mongodb://localhost:27017"
+    },
+    "redis": {
+        "url": "redis://localhost:6379",
+        "key_prefix": "warsoc:stateful:",
+        "default_ttl": 3600
+    },
+    "monitoring": {
+        "target_event_ids": [
+            1100,
+            1102,
+            4616,
+            4624,
+            4625,
+            4648,
+            4657,
+            4660,
+            4663,
+            4670,
+            4672,
+            4688,
+            4697,
+            4698,
+            4719,
+            4720,
+            4726,
+            4732,
+            4768,
+            4769,
+            4776,
+            4798,
+            5140,
+            5157,
+            7045
+        ],
+        "capture_all_security_events": false,
+        "capture_all_windows_channels": false,
+        "windows_channels": [
+            "Security",
+            "System"
+        ],
+        "web_log_paths": [
+            "access.log",
+            "C:/inetpub/logs/LogFiles/W3SVC*/u_ex*.log",
+            "%ProgramData%/WarSOC/pos_audit.log"
+        ]
+    },
+    "agent_security": {
+        "enforce_ip_whitelist": false,
+        "enforce_payload_size": true,
+        "enforce_timestamp_validation": true,
+        "allowed_ips": [
+            "127.0.0.1",
+            "localhost",
+            "172.18.0.1",
+            "172.18.0.0/12"
+        ],
+        "max_payload_bytes": 1048576,
+        "clock_skew_warning_seconds": 300,
+        "max_log_age_seconds": 86400,
+        "max_future_skew_seconds": 43200
+    },
+    "geoip": {
+        "enabled": true,
+        "mock_mode": true
+    },
+    "bouncer": {
+        "event_ids": [
+            8233
+        ],
+        "threshold": 10,
+        "window_seconds": 60
+    },
+    "advanced_siem": {
+        "event_id_rules": {
+            "WAF-BLOCK-01": {
+                "severity": "CRITICAL",
+                "summary": "WAF Malicious IP Block Detected",
+                "type": "WAF_BLOCK_DETECTED"
+            }
+        }
+    },
+    "source_classification": {
+        "WAF": {
+            "severity_by_keyword": {
+                "sql injection": "CRITICAL",
+                "xss": "HIGH",
+                "1=1": "CRITICAL"
+            }
+        }
+    }
+}

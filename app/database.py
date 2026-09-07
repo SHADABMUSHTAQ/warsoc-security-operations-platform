@@ -1,0 +1,312 @@
+from motor.motor_asyncio import AsyncIOMotorClient
+from app.config.config import get_settings
+from bson import ObjectId
+import logging
+from contextlib import asynccontextmanager
+
+# Logger Setup
+logger = logging.getLogger(__name__)
+
+class DatabaseManager:
+    def __init__(self):
+        self.client = None
+        self.db = None
+
+    async def connect(self):
+        """Initializes the connection to MongoDB."""
+        settings = get_settings()
+        
+        #  DB Name dynamically pulled from settings (CTO FIX)
+        db_name = settings.mongodb_db_name  
+        
+        try:
+            self.client = AsyncIOMotorClient(settings.mongodb_uri)
+            self.db = self.client[db_name]
+            
+            # Ping verify
+            await self.client.admin.command('ping')
+            print(f" MongoDB Connected: {db_name}")
+            
+        except Exception as e:
+            print(f" MongoDB Connection Failed: {e}")
+            raise e
+
+    async def close(self):
+        """Closes the connection."""
+        if self.client:
+            self.client.close()
+            print(" MongoDB Connection Closed")
+
+    #  MAGIC METHOD 
+    # Handles dynamic calls like 'db.users'
+    def __getattr__(self, name):
+        if self.db is not None:
+            return getattr(self.db, name)
+        raise AttributeError(f"'DatabaseManager' not connected. Cannot access '{name}'")
+
+    # ==========================================
+    #  HELPER METHODS
+    # ==========================================
+    
+    async def insert_analysis_result(self, data: dict) -> str:
+        """Saves a new log analysis job."""
+        if self.db is None: await self.connect()
+        result = await self.db.analysis_results.insert_one(data)
+        return str(result.inserted_id)
+
+    async def get_analysis_result(self, analysis_id: str, tenant_id: str):
+        """Fetches a report by ID with tenant isolation."""
+        if self.db is None: await self.connect()
+        if not ObjectId.is_valid(analysis_id):
+            return None
+        return await self.db.analysis_results.find_one({"_id": ObjectId(analysis_id), "tenant_id": tenant_id})
+    
+    #  PIPE 1: Strictly for Manual File Uploads
+    async def get_all_analyses(self, tenant_id: str):
+        """Fetches manual uploads with tenant isolation."""
+        if self.db is None: await self.connect()
+        if not tenant_id:
+            raise ValueError("tenant_id is required for get_all_analyses.")
+        
+        cursor = self.db.analysis_results.find({"tenant_id": tenant_id}).sort("uploaded_at", -1)
+        results = await cursor.to_list(length=100)
+        
+        clean_results = []
+        for res in results:
+            res["_id"] = str(res["_id"])
+            res["analysisId"] = str(res["_id"]) 
+            clean_results.append(res)
+            
+        return clean_results
+
+    #  PIPE 2: Strictly for Live Windows Agent
+    async def get_all_logs(self, tenant_id: str):
+        """Fetches live agent streaming data from the logs collection.
+        Tenant isolation enforcement: `tenant_id` is required.
+        """
+        if self.db is None: await self.connect()
+        if not tenant_id:
+            raise ValueError("tenant_id is required for get_all_logs to enforce tenant isolation.")
+        
+        cursor = self.db.logs.find({"tenant_id": tenant_id}).sort("timestamp", -1)
+        results = await cursor.to_list(length=100)
+        
+        clean_results = []
+        for res in results:
+            res["_id"] = str(res["_id"])
+            clean_results.append(res)
+            
+        return clean_results
+
+    async def update_analysis_result(self, analysis_id: str, update_data: dict):
+        """Updates a report (Used by Worker)."""
+        if self.db is None: await self.connect()
+        if not ObjectId.is_valid(analysis_id):
+            return
+        await self.db.analysis_results.update_one(
+            {"_id": ObjectId(analysis_id)},
+            {"$set": update_data}
+        )
+
+# --- GLOBAL INSTANCE ---
+db_manager = DatabaseManager()
+
+# --- DEPENDENCY FOR ROUTES ---
+async def get_db():
+    if db_manager.db is None:
+        # Fallback ONLY if lifespan somehow failed, but we raise an error instead of thrashing
+        raise Exception("Database not initialized. Check lifespan startup.")
+    return db_manager.db
+
+# --- CONTEXT MANAGER FOR WORKER ---
+@asynccontextmanager
+async def get_db_context():
+    if db_manager.db is None:
+        await db_manager.connect()
+    try:
+        yield db_manager
+    finally:
+        # Motor manages connection pooling. Do NOT close the client here —
+        # repeatedly opening/closing the client from a worker will thrash connections.
+        # Keep the client open for the process lifetime and rely on `init_db()` at startup.
+        pass
+
+# --- INITIALIZATION ---
+async def init_db():
+    await db_manager.connect()
+    # Ensure tenant isolation indexes exist for performance and safety
+    if db_manager.db is not None:
+        indexes = [
+            ("logs", [("tenant_id", 1), ("timestamp", -1)], None),
+            ("security_alerts", [("tenant_id", 1), ("timestamp", -1)], None),
+            ("peca_forensic_logs", [("tenant_id", 1), ("timestamp", -1)], None),
+            ("fbr_pos_logs", [("tenant_id", 1), ("timestamp", -1)], None),
+            ("csv_uploads", [("tenant_id", 1), ("timestamp", -1)], None),
+            (
+                "csv_uploads",
+                [("tenant_id", 1), ("_retention_ts", -1)],
+                "idx_csv_uploads_tenant_retention",
+            ),
+            # These two indexes are required by ingestion and the dashboard.
+            # Keep them in the fast startup phase so a later compliance
+            # backfill timeout cannot leave the live SIEM vault unindexed.
+            (
+                "siem_cold_vault",
+                [("tenant_id", 1), ("event_uid", 1)],
+                "idx_siem_vault_tenant_event_uid",
+            ),
+            (
+                "siem_cold_vault",
+                [("tenant_id", 1), ("timestamp", -1)],
+                "idx_siem_vault_tenant_timestamp",
+            ),
+            ("logs", "tenant_id", None),
+            ("security_alerts", "tenant_id", None),
+            ("analysis_results", "tenant_id", None),
+            ("firewall_rules", [("tenant_id", 1), ("ip", 1)], None),
+            ("users", "tenant_id", "idx_users_tenant_id_1"),
+            (
+                "archive_retrieval_requests",
+                [("tenant_id", 1), ("created_at", -1)],
+                "idx_archive_retrieval_tenant_created",
+            ),
+            (
+                "archive_retrieval_allowances",
+                [("tenant_id", 1), ("billing_month", 1)],
+                "uq_archive_retrieval_allowance_month",
+            ),
+        ]
+        for coll, idx, explicit_name in indexes:
+            try:
+                # Use a specific name to avoid collision with default generated names
+                idx_str = str(idx).replace(' ', '').replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(',', '_').replace("'", '')
+                index_name = explicit_name or f"idx_{coll}_{idx_str}"
+                expected_unique = index_name == "uq_archive_retrieval_allowance_month"
+                try:
+                    create_options = {"name": index_name}
+                    if expected_unique:
+                        create_options["unique"] = True
+                    await db_manager.db[coll].create_index(idx, **create_options)
+                except Exception as e:
+                    # Handle IndexOptionsConflict (existing same-key index with different name/options)
+                    is_conflict = getattr(e, 'code', None) == 85 or 'IndexOptionsConflict' in str(e)
+                    if is_conflict:
+                        # Normalize expected key pattern
+                        if isinstance(idx, str):
+                            expected_key = [(idx, 1)]
+                        else:
+                            expected_key = list(idx)
+
+                        idxs = await db_manager.db[coll].index_information()
+                        handled = False
+                        for name, info in idxs.items():
+                            if info.get('key') == expected_key:
+                                # Index names are operational metadata. Do not
+                                # rebuild a large equivalent non-TTL index just
+                                # to rename it during API startup.
+                                equivalent = (
+                                    bool(info.get('unique')) == expected_unique
+                                    and not info.get('sparse')
+                                    and info.get('expireAfterSeconds') is None
+                                    and not info.get('partialFilterExpression')
+                                )
+                                if equivalent:
+                                    print(f"    - Using equivalent index {coll}.{name}")
+                                else:
+                                    await db_manager.db[coll].drop_index(name)
+                                    print(f"    - Dropped incompatible index {coll}.{name}")
+                                    await db_manager.db[coll].create_index(idx, **create_options)
+                                    print(f"    - Recreated compound index {index_name}")
+                                handled = True
+                                break
+                        if not handled:
+                            print(f" Index conflict for {coll}/{idx} but no matching key found: {e}")
+                    else:
+                        print(f" Index setup for {coll}/{idx} failed: {e}")
+            except Exception as e:
+                print(f" Index setup for {coll}/{idx} (skipped or already exists): {e}")
+
+        # Team management requires multiple users per tenant; remove any legacy unique tenant index or conflicting name.
+        try:
+            users_indexes = await db_manager.db["users"].index_information()
+            for idx_name, idx_def in users_indexes.items():
+                if idx_name == "_id_":
+                    continue
+                if idx_def.get("key") != [("tenant_id", 1)]:
+                    continue
+                if idx_def.get("unique") or idx_name != "idx_users_tenant_id_1":
+                    await db_manager.db["users"].drop_index(idx_name)
+                    print(f"    - Dropped legacy or conflicting users.{idx_name} index")
+                    # Don't break here, we want to drop all such indices
+            await db_manager.db["users"].create_index([("tenant_id", 1)], name="idx_users_tenant_id_1", unique=False)
+        except Exception as e:
+            print(f" users.tenant_id index normalization failed: {e}")
+
+        await ensure_threat_intel_indexes(db_manager.db)
+        await ensure_used_provisioning_token_indexes(db_manager.db)
+        
+        # TTL indexes are centralized in app.db.init_db.init_compliance_db.
+        # Do not create retention indexes here; split ownership caused old
+        # _retention_ts TTL indexes to coexist with the current _expire_at model.
+
+        print(" MongoDB Indexes Ensured")
+
+
+async def _dedupe_field_before_unique(collection, collection_name: str, field_name: str):
+    seen = set()
+    duplicates = []
+    cursor = collection.find({field_name: {"$exists": True}}, {field_name: 1}).sort([("timestamp", -1), ("_id", -1)])
+    async for document in cursor:
+        value = str(document.get(field_name) or "").strip()
+        if not value:
+            continue
+        if value in seen:
+            duplicates.append(document["_id"])
+        else:
+            seen.add(value)
+
+    if duplicates:
+        await collection.delete_many({"_id": {"$in": duplicates}})
+        print(f"    - Removed {len(duplicates)} duplicate {collection_name}.{field_name} document(s)")
+
+
+async def ensure_threat_intel_indexes(db):
+    collection = db.get_collection("threat_intel_learned_ips")
+    indexes = await collection.index_information()
+    expected_key = [("ip", 1)]
+
+    for idx_name, idx_def in indexes.items():
+        if idx_name == "_id_":
+            continue
+        if idx_def.get("key") != expected_key:
+            continue
+        if idx_def.get("unique"):
+            return
+        await collection.drop_index(idx_name)
+        logger.warning(f"Dropped non-unique threat intel index {idx_name} before enforcing uniqueness")
+        break
+
+    await _dedupe_field_before_unique(collection, "threat_intel_learned_ips", "ip")
+    await collection.create_index([("ip", 1)], name="ip_1", unique=True)
+    logger.info("Threat intel learned IP uniqueness enforced")
+
+
+async def ensure_used_provisioning_token_indexes(db):
+    collection = db.get_collection("used_provisioning_tokens")
+    indexes = await collection.index_information()
+    expected_key = [("jti", 1)]
+
+    for idx_name, idx_def in indexes.items():
+        if idx_name == "_id_":
+            continue
+        if idx_def.get("key") != expected_key:
+            continue
+        if idx_def.get("unique"):
+            return
+        await collection.drop_index(idx_name)
+        logger.warning(f"Dropped non-unique provisioning token index {idx_name} before enforcing uniqueness")
+        break
+
+    await _dedupe_field_before_unique(collection, "used_provisioning_tokens", "jti")
+    await collection.create_index([("jti", 1)], name="jti_1", unique=True)
+    logger.info("Used provisioning token uniqueness enforced")

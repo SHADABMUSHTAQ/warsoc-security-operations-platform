@@ -1,0 +1,31 @@
+# Local secrets and runtime state
+.env
+.env.*
+!.env.example
+keys/
+*.pem
+*.key
+*.crt
+
+# Python and test output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.log
+
+# Local databases, uploads and generated exports
+data/
+uploads/
+exports/
+reports/
+backups/
+*.db
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
