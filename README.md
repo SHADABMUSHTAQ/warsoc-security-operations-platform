@@ -1,12 +1,19 @@
 # WarSOC
 
-WarSOC is a security-operations frontend for teams that need one place to review incidents, investigate logs, manage endpoint and relay access, and prepare compliance evidence. It provides a browser interface for a compatible backend API; this repository intentionally contains no production credentials, customer data, private reports, or backend source code.
+WarSOC is a security-operations platform for teams that need one place to review incidents, investigate logs, manage endpoint and relay access, and prepare compliance evidence. This `main` branch contains the React frontend; the compatible FastAPI backend is available in the public [`backend` branch](https://github.com/SHADABMUSHTAQ/Qoder-Project/tree/backend).
 
 ## Hackathon submission
 
 This repository is a clean, public submission copy prepared for Alibaba Cloud AI Hackathon Pakistan 2026. It has a fresh Git history and excludes all private environment files, internal implementation reports, generated outputs, and deployment-specific configuration.
 
 The team used **Qoder** as an AI-assisted development tool while building and refining this frontend. Qoder supported the development workflow; the project team reviewed the code and remains responsible for its design, testing, and submission.
+
+## Source code map
+
+- [`main`](https://github.com/SHADABMUSHTAQ/Qoder-Project/tree/main): React/Vite frontend, user interface and frontend-to-API contract.
+- [`backend`](https://github.com/SHADABMUSHTAQ/Qoder-Project/tree/backend): FastAPI API, authentication, dashboard data, MongoDB/Redis setup and safe local demo bootstrap.
+
+Both branches are public submission copies and exclude production credentials, customer data, private reports, logs and deployment secrets.
 
 ## What the frontend covers
 
