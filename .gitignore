@@ -40,3 +40,8 @@ api_tail.txt
 docker_logs.txt
 proof.txt
 temp_agent_enroll.json
+/hello.txt
+/out.txt
+/output*.txt
+/ps_write_test.txt
+/test_out*.txt
