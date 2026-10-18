@@ -104,11 +104,13 @@ The video and screenshots should match the submitted version. If they show an ea
 
 ## Team contributions
 
-**Submission owner: replace the placeholders with the real registered names and actual work before submitting. Do not list someone who did not contribute.**
+The following contributions match the roles listed in the project submission form. Each team member is responsible for confirming that their entry accurately describes their work.
 
 | Team member | Role | Specific contribution |
 | --- | --- | --- |
-| **[Full name]** | **[Role]** | **[What this person built, tested, designed, or documented]** |
+| Muhammad Shadab Mushtaq | Frontend and demo workflows | Worked on the frontend UI, dashboard presentation, and demonstration workflows. |
+| Hamza Alam | Backend development | Worked on backend APIs and security logic. |
+| Muhammad Murtaza | Testing and documentation | Worked on testing, documentation, and the demo video. |
 
 ## Security and repository notes
 
