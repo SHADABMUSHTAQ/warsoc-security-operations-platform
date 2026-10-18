@@ -43,12 +43,12 @@ const Contact = () => {
       <div className="contact-container">
         {/* Left Side - SIEM Info */}
         <div className="contact-info">
-          <span className="section-badge">Talk to Experts</span>
+          <span className="section-badge">Hackathon Demo</span>
           <h2>
-            Secure Your <span className="highlight-text">Infrastructure</span> Today
+            Explore the <span className="highlight-text">WarSOC Prototype</span>
           </h2>
           <p className="contact-description">
-            Whether you need a full platform demo,or emergency incident response, the WarSOC team is on standby.
+            This form is for demo feedback and hackathon discussion only. It does not provide emergency response or production support.
           </p>
 
           <div className="contact-details">
@@ -57,8 +57,8 @@ const Contact = () => {
                 <Headset size={20} />
               </div>
               <div>
-                <h4>Sales & Demo</h4>
-                <p>ceo@warsoc.tech</p>
+                <h4>Project Demo</h4>
+                <p>Prototype workflow</p>
               </div>
             </div>
             <div className="contact-item">
@@ -66,8 +66,8 @@ const Contact = () => {
                 <ShieldAlert size={20} />
               </div>
               <div>
-                <h4>24/7 SOC Emergency</h4>
-                <p>+92 335 3782134 (Priority Support)</p>
+                <h4>Support Scope</h4>
+                <p>No production support in this prototype</p>
               </div>
             </div>
             <div className="contact-item">
@@ -75,8 +75,8 @@ const Contact = () => {
                 <MapPin size={20} />
               </div>
               <div>
-                <h4>Location</h4>
-                <p>National Incubation Centre, Karachi</p>
+                <h4>Project Stage</h4>
+                <p>Hackathon prototype</p>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@ const Contact = () => {
           ) : (
             // Warna normal form dikhaye
             <form className="contact-form" onSubmit={handleSubmit}>
-              <h3>Request a Demo / Contact Sales</h3>
+              <h3>Send Demo Feedback</h3>
               <input type="text" name="website" tabIndex="-1" autoComplete="off" style={{ display: 'none' }} />
               
               <div className="form-row">
@@ -111,32 +111,32 @@ const Contact = () => {
                   <input type="text" id="name" name="name" placeholder="John Doe" required />
                 </div>
                 <div className="form-group half-width">
-                  <label htmlFor="company">Company Name</label>
+                  <label htmlFor="company">Organization (optional)</label>
                   <div className="input-with-icon">
-                    <input type="text" id="company" name="company" placeholder="Acme Corp" style={{paddingLeft: '32px'}} required />
+                    <input type="text" id="company" name="company" placeholder="Optional" style={{paddingLeft: '32px'}} />
                   </div>
                 </div>
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">Work Email</label>
-                <input type="email" id="email" name="email" placeholder="john@company.com" required />
+                <label htmlFor="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Optional" />
               </div>
 
               <div className="form-group">
                 <label htmlFor="inquiryType">How can we help you?</label>
                 <select id="inquiryType" name="inquiryType" defaultValue="" required>
                   <option value="" disabled>Select an option...</option>
-                  <option value="demo">Request a Platform Demo</option>
-                  <option value="compliance">Compliance Audit & Setup</option>
-                  <option value="incident">Emergency Incident Response</option>
-                  <option value="partnership">MSSP / Partnership Inquiry</option>
+                  <option value="demo">Demo walkthrough</option>
+                  <option value="compliance">Feature feedback</option>
+                  <option value="incident">Prototype question</option>
+                  <option value="partnership">Hackathon discussion</option>
                 </select>
               </div>
 
               <div className="form-group">
                 <label htmlFor="message">Additional Details</label>
-                <textarea id="message" name="message" rows="3" placeholder="Tell us about your infrastructure size and specific security needs..." required></textarea>
+                <textarea id="message" name="message" rows="3" placeholder="Share feedback about the prototype..." required></textarea>
               </div>
 
               {error && <p className="privacy-note" style={{ color: '#ff6b6b' }}>{error}</p>}

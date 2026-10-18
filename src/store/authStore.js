@@ -28,23 +28,6 @@ export const useAuthStore = create((set) => ({
     checkAuth: async () => {
         set({ isLoading: true });
 
-        // === TEMP LOCAL BYPASS START ===
-        const localAuthBypass = import.meta.env.VITE_LOCAL_AUTH_BYPASS === "true"
-            && import.meta.env.MODE !== "production"
-            && window.location.hostname === "localhost";
-        if (localAuthBypass) {
-            set({
-                user: { full_name: "Local Test Admin", email: "local@test.invalid" },
-                plan_type: "Local Test",
-                role: "admin",
-                isAuthenticated: true,
-                csrfToken: null,
-                isLoading: false,
-            });
-            return true;
-        }
-        // === TEMP LOCAL BYPASS END ===
-
         try {
             const response = await apiClient.get('/auth/me');
             set({

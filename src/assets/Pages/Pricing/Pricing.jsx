@@ -100,7 +100,7 @@ export default function Pricing({ standalone = false }) {
         {/* HEADER */}
         <div className="pricing-header">
           <h2 className="section-title">Configure Your WarSOC Deployment</h2>
-          <p className="section-subtitle">Transparent PKR list pricing for 10-50 endpoint deployments. Payment remains by manual invoice.</p>
+          <p className="section-subtitle">Interface-only pricing preview for the hackathon prototype. No purchases, subscriptions, or production deployment are offered here.</p>
           
           <div className="billing-toggle">
             <span className={billingCycle === "monthly" ? "active" : ""}>Monthly</span>
@@ -161,7 +161,7 @@ export default function Pricing({ standalone = false }) {
                                 </div>
                               )}
                             </div>
-                            <small>Security, PECA, and FBR evidence follow the selected archive entitlement. Authorized legal holds may extend preservation.</small>
+                            <small>Retention controls and evidence workflows require a connected backend and authorized account.</small>
                         </div>
                     </div>
                 </div>

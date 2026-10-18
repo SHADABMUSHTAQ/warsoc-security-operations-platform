@@ -15,6 +15,7 @@ const RequestQuote = lazy(() => import('./assets/Pages/RequestQuote/RequestQuote
 const Dashboard = lazy(() => import('./assets/Pages/Dashboard/Dashboard'));
 const Profile = lazy(() => import('./assets/Pages/Profile/Profile'));
 const LegalPage = lazy(() => import('./assets/Pages/Legal/LegalPage'));
+const AiTriage = lazy(() => import('./assets/Pages/AiTriage/AiTriage'));
 
 function App() {
     const { checkAuth } = useAuthStore();
@@ -35,6 +36,7 @@ function App() {
                         <Route path="/privacy" element={<LegalPage type="privacy" />} />
                         <Route path="/terms" element={<LegalPage type="terms" />} />
                         <Route path="/pricing" element={<Pricing standalone />} />
+                        <Route path="/ai-triage" element={<AiTriage />} />
                         <Route path="/request-quote" element={<RequestQuote />} />
                         <Route path="/set-password" element={<SetPassword />} />
 

@@ -96,12 +96,12 @@ const About = () => {
             <div>
               <span>STATUS</span>
               <strong>
-                <b className="about-status-dot" /> Monitoring
+                <b className="about-status-dot" /> Demo monitoring
               </strong>
             </div>
             <div>
               <span>LAST SEEN</span>
-              <strong>Live telemetry</strong>
+              <strong>Sample telemetry</strong>
             </div>
           </div>
           <div className="about-preview-metrics">
@@ -195,7 +195,7 @@ const About = () => {
           <div className="about-preview-footer">
             <CheckCircle2 size={15} />
             <span>
-              Evidence and endpoint context stay connected to every decision.
+              Sample evidence and endpoint context are connected in this demo.
             </span>
             <strong>
               VIEW WORKSPACE <span>→</span>

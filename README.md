@@ -1,17 +1,27 @@
 # WarSOC
 
+> Hackathon prototype notice: the operations workspace requires a connected backend and authenticated account. No fabricated dashboard, endpoint, evidence, or compliance records are bundled. The public AI triage page uses synthetic training examples. This is not a production SOC service.
+
 WarSOC is a security-operations platform for teams that need one place to review incidents, investigate logs, manage endpoint and relay access, and prepare compliance evidence. This `main` branch contains the React frontend; the compatible FastAPI backend is available in the public [`backend` branch](https://github.com/SHADABMUSHTAQ/Qoder-Project/tree/backend).
 
-## Hackathon submission
+## NYLP AI Hackathon 2026 addition
 
-This repository is a clean, public submission copy prepared for Alibaba Cloud AI Hackathon Pakistan 2026. It has a fresh Git history and excludes all private environment files, internal implementation reports, generated outputs, and deployment-specific configuration.
+The browser-based **AI Event Triage** module at `/ai-triage` was added for the NYLP AI Hackathon 2026 demonstration. WarSOC's broader security operations interface and backend existed before this module; this addition must not be represented as a completely new product. The submission should follow the organizer's originality requirements and disclose any reused work.
 
-The team used **Qoder** as an AI-assisted development tool while building and refining this frontend. Qoder supported the development workflow; the project team reviewed the code and remains responsible for its design, testing, and submission.
+The team used **OpenAI Codex, Claude, and Qoder** as AI-assisted development tools. These tools helped with coding, debugging, review, and documentation; they are separate from the product's browser-based ML model. The team remains responsible for understanding and testing the submitted work.
+
+### AI methodology and model usage
+
+The AI Event Triage page trains a small **Multinomial Naive Bayes** text classifier in the browser using 32 synthetic, labelled event descriptions. Given a non-sensitive security-event description, it predicts one of four categories: credential abuse, script execution, network anomaly, or routine activity. The page displays indicative words, known-word coverage, and analyst review guidance. It requires no backend, external model provider, API key, or network request for inference.
+
+This is a limited educational model, not a production detection system. The examples are synthetic, its vocabulary is small, its scores are not calibrated risk probabilities, and its output must be reviewed by a person. Do not enter real customer data or rely on its output for security decisions.
+
+No third-party AI inference API is used by this module. Development assistants are disclosed above; their assistance is not counted as product inference.
 
 ## Source code map
 
 - [`main`](https://github.com/SHADABMUSHTAQ/Qoder-Project/tree/main): React/Vite frontend, user interface and frontend-to-API contract.
-- [`backend`](https://github.com/SHADABMUSHTAQ/Qoder-Project/tree/backend): FastAPI API, authentication, dashboard data, MongoDB/Redis setup and safe local demo bootstrap.
+- [`backend`](https://github.com/SHADABMUSHTAQ/Qoder-Project/tree/backend): FastAPI API, authentication, dashboard data, MongoDB/Redis setup and local backend bootstrap.
 
 Both branches are public submission copies and exclude production credentials, customer data, private reports, logs and deployment secrets.
 
@@ -21,6 +31,7 @@ Both branches are public submission copies and exclude production credentials, c
 - Operations workspace for incident review, live and historical log investigation, endpoint trust, agent activation, and network-relay administration.
 - Compliance workflows for evidence packs, cases, custody actions, legal holds, retention status, archive retrieval, and exports.
 - Responsive React UI with accessible loading, empty, error, and permission states.
+- Public AI Event Triage page with browser-based ML classification of sample security-event text.
 
 ## Tech stack
 

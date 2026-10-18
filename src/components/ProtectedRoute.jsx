@@ -6,15 +6,6 @@ import SessionLoading from './SessionLoading';
 const ProtectedRoute = () => {
     const { isAuthenticated, isLoading } = useAuthStore();
 
-    // === TEMP LOCAL BYPASS START ===
-    const localAuthBypass = import.meta.env.VITE_LOCAL_AUTH_BYPASS === "true"
-        && import.meta.env.MODE !== "production"
-        && window.location.hostname === "localhost";
-    if (localAuthBypass) {
-        return <Outlet />;
-    }
-    // === TEMP LOCAL BYPASS END ===
-
     if (isLoading) {
         return <SessionLoading />;
     }

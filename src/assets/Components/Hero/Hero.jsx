@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import SocDashboard from "./SocDashboard";
 import "./Hero.css";
 
@@ -29,30 +29,32 @@ function Hero() {
           </h1>
           
           <p>
-            Detect threats in real-time with WarSOC's advanced Detection System.
-            Secure your infrastructure
+            Explore security activity, evidence workflows, and browser-based AI event triage in this hackathon prototype.
           </p>
 
           <div className="hero-buttons">
             <button className="btn-primary" onClick={() => navigate("/login")}>
               Get Started <ArrowRight size={18} />
             </button>
+            <button className="btn-primary" onClick={() => navigate("/ai-triage")}>
+              Try AI Event Triage <ArrowRight size={18} />
+            </button>
           </div>
 
           <div className="hero-stats">
             <div className="stat-item">
-              <strong>24/7</strong>
-              <span>monitoring</span>
+              <strong>4</strong>
+              <span>AI event categories</span>
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
-              <strong>5-Min</strong>
-              <span>Agent Setup</span>
+              <strong>32</strong>
+              <span>synthetic training examples</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Live SOC Dashboard */}
+        {/* Landing-page dashboard preview. */}
         <div className="hero-visual">
           <SocDashboard />
         </div>

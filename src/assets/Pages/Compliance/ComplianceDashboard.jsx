@@ -15,7 +15,7 @@ export default function ComplianceDashboard() {
   const navigate = useNavigate(); // 🚀 Navigation Hook initialization
   const { user, checkAuth } = useAuthStore();
   const [packs, setPacks] = useState([]);
-  const [userPurchasedPacks, setUserPurchasedPacks] = useState([]); 
+  const [userPurchasedPacks, setUserPurchasedPacks] = useState([]);
   const [selectedPackId, setSelectedPackId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [config, setConfig] = useState(null);

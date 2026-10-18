@@ -1010,9 +1010,7 @@ function Dashboard() {
   };
 
   const handleAgentInstallerDownload = () => {
-    const baseUrl = String(
-      apiClient.defaults.baseURL || "/api/v1",
-    ).replace(/\/$/, "");
+    const baseUrl = String(apiClient.defaults.baseURL || "/api/v1").replace(/\/$/, "");
     window.location.assign(`${baseUrl}/agent/download`);
   };
 
@@ -1514,11 +1512,7 @@ function Dashboard() {
               onClick={handlePrepareAgentDownload}
               disabled={generatingActivation}
             >
-              {generatingActivation ? (
-                <RefreshCw size={18} className="activation-spinner" />
-              ) : (
-                <Download size={18} />
-              )}
+              {generatingActivation ? <RefreshCw size={18} className="activation-spinner" /> : <Download size={18} />}
               {generatingActivation ? "Generating..." : "Download Agent"}
             </button>
           )}
@@ -2301,17 +2295,9 @@ function Dashboard() {
             <div className="modal-header">
               <div>
                 <h3 id="agent-activation-title" className="modal-filename">Agent Activation</h3>
-                <span className="activation-expiry">
-                  Single use - expires in {Math.max(1, Math.round(agentActivation.expiresInSeconds / 3600))} hours
-                </span>
+                <span className="activation-expiry">Single use - expires in {Math.max(1, Math.round(agentActivation.expiresInSeconds / 3600))} hours</span>
               </div>
-              <button
-                type="button"
-                onClick={() => setAgentActivation(null)}
-                className="close-btn modal-close-button"
-                aria-label="Close agent activation"
-                title="Close agent activation"
-              >
+              <button type="button" onClick={() => setAgentActivation(null)} className="close-btn modal-close-button" aria-label="Close agent activation" title="Close agent activation">
                 <span className="modal-close-glyph" aria-hidden="true">X</span>
               </button>
             </div>
@@ -2319,16 +2305,12 @@ function Dashboard() {
               <label className="activation-label">Activation code</label>
               <div className="activation-code-row">
                 <code>{agentActivation.code}</code>
-                <button type="button" className="activation-copy-btn" onClick={handleCopyActivation} title="Copy activation code">
-                  <Copy size={18} />
-                </button>
+                <button type="button" className="activation-copy-btn" onClick={handleCopyActivation} title="Copy activation code"><Copy size={18} /></button>
               </div>
             </div>
             <div className="modal-actions-right">
               <button className="btn-cancel" onClick={() => setAgentActivation(null)}>Cancel</button>
-              <button className="btn-primary activation-download-btn" onClick={handleAgentInstallerDownload}>
-                <Download size={18} /> Download Installer
-              </button>
+              <button className="btn-primary activation-download-btn" onClick={handleAgentInstallerDownload}><Download size={18} /> Download Installer</button>
             </div>
           </div>
         </div>
