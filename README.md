@@ -110,7 +110,7 @@ The following contributions match the roles listed in the project submission for
 | --- | --- | --- |
 | Muhammad Shadab Mushtaq | Frontend and demo workflows | Worked on the frontend UI, dashboard presentation, and demonstration workflows. |
 | Hamza Alam | Backend development | Worked on backend APIs and security logic. |
-| Muhammad Murtaza | Testing and documentation | Worked on testing, documentation, and the demo video. |
+| Muhammad Multazam Mustafa | Testing and documentation | Worked on testing, documentation, and the demo video. |
 
 ## Security and repository notes
 
