@@ -12,8 +12,8 @@ WarSOC is a security-operations interface for reviewing security events and inve
 | Public AI demo | [AI Event Triage](https://warsoc-push.vercel.app/ai-triage) |
 | Frontend source | [`main` branch](https://github.com/SHADABMUSHTAQ/warsoc-security-operations-platform/tree/main) |
 | Backend source | [`backend` branch](https://github.com/SHADABMUSHTAQ/warsoc-security-operations-platform/tree/backend) |
-| Demo video | **Add the public video URL before submission.** |
-| Screenshots | **Add the public screenshots folder URL before submission.** |
+| Demo video | [WarSOC prototype video](https://drive.google.com/file/d/1J6ub8Lq19fWRBT4GS7oCmsKRRuj_iJNQ/view?usp=drive_link) |
+| Screenshots | [Screenshots folder](https://drive.google.com/drive/folders/1dDt14YzKwhN2o6GRvJgQjeyOIvKDqihJ?usp=drive_link) |
 
 The live Vercel deployment is a frontend deployment. It does not host the FastAPI backend. The home page and `/ai-triage` are public; protected dashboard routes require a working backend and login. The home-page dashboard artwork is an illustrative preview, not a live telemetry feed.
 
@@ -95,10 +95,10 @@ The repository includes tests for the event classifier and frontend/backend cont
 
 ## Demo video and screenshots
 
-**Submission owner: replace these placeholders with accessible links before submitting.** Share the video file and screenshots folder as **Anyone with the link — Viewer**, then test both links in a private/incognito window.
+The submitted video and screenshots are linked below. They should remain shared as **Anyone with the link — Viewer**; test both links in a private/incognito window before submitting.
 
-- Demo video: **[Add direct video file URL]**
-- Product screenshots: **[Add screenshots folder URL]**
+- Demo video: [WarSOC prototype video](https://drive.google.com/file/d/1J6ub8Lq19fWRBT4GS7oCmsKRRuj_iJNQ/view?usp=drive_link)
+- Product screenshots: [Screenshots folder](https://drive.google.com/drive/folders/1dDt14YzKwhN2o6GRvJgQjeyOIvKDqihJ?usp=drive_link)
 
 The video and screenshots should match the submitted version. If they show an earlier demo state, label it clearly rather than implying the same operational data is available on the live frontend.
 
