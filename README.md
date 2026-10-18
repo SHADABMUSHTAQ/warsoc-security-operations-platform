@@ -100,7 +100,7 @@ The submitted video and screenshots are linked below. They should remain shared 
 - Demo video: [WarSOC prototype video](https://drive.google.com/file/d/1J6ub8Lq19fWRBT4GS7oCmsKRRuj_iJNQ/view?usp=drive_link)
 - Product screenshots: [Screenshots folder](https://drive.google.com/drive/folders/1dDt14YzKwhN2o6GRvJgQjeyOIvKDqihJ?usp=drive_link)
 
-The video and screenshots should match the submitted version. If they show an earlier demo state, label it clearly rather than implying the same operational data is available on the live frontend.
+The video and screenshots include an earlier prototype walkthrough of the operations UI. They illustrate the intended workflow; the public live deployment does not provide populated operational records. The working, backend-independent feature to evaluate is [AI Event Triage](https://warsoc-push.vercel.app/ai-triage).
 
 ## Team contributions
 
